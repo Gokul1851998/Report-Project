@@ -7,7 +7,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { Typography} from "@mui/material";
+import { Typography } from "@mui/material";
 import AutoComplete from "./AutoComplete";
 import TextBox from "./TextBox";
 import ActionButton from "./ActionButton";
@@ -29,9 +29,34 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
   const [columns, setColumns] = React.useState([]);
   const IdName = "Id";
   const excludedFields = [IdName, "Month", "Year", "PV", "AC", "EV"];
-  const styleIcon = {
+
+  const totalStyle = {
+    padding: "0px",
+    paddingLeft: "4px",
+    paddingRight: "4px",
+    border: `1px solid #ddd`,
+    fontWeight: "600",
+    font: "14px",
+    backgroundColor: "#2196f3",
     color: "white",
+    paddingTop: "3px",
+    paddingBottom: "3px",
+    position: "relative",
   };
+  
+  const totals = rowData?.reduce(
+    (acc, row) => ({
+      EXV: acc.EXV + (row["Execute Value"] || 0),
+      PV: acc.PV + (row["Planed Value (PV)"] || 0),
+      EV: acc.EV + (row["Earned Value (EV)"] || 0),
+      AC: acc.AC + (row["Actual Cost (AC)"] || 0),
+      SV: acc.SV + (row["Schedule Variance (SV)"] || 0),
+      SPI: acc.SPI + (row["Schedule Performance Index (SPI)"] || 0),
+      CV: acc.CV + (row["Cumulative of Cost Variance (CV)"] || 0),
+      CPI: acc.CPI + (row["Cost Performance Index (CPI)"] || 0),
+    }),
+    {EXV:0, PV: 0, EV: 0, AC: 0, SV: 0, SPI: 0, CV: 0, CPI: 0 }
+  );
   //To apply some filters on table rows
   const initialColumns =
     rowData && rowData.length > 0
@@ -88,7 +113,6 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
     );
   };
 
-
   const handleExcel = async () => {
     try {
       await exportToExcel({
@@ -116,7 +140,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
           alignItems: "center", // Align items properly
         }}
       >
-           <Box
+        <Box
           sx={{
             display: "flex",
             width: "100%",
@@ -130,7 +154,6 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
           <Typography underline="hover" sx={style} key="1">
             Name of the Report
           </Typography>
-        
         </Box>
         {/* Left-aligned elements */}
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -163,7 +186,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
       {rowData && rowData.length > 0 ? (
         <Paper sx={{ width: "100%" }}>
           <TableContainer
-            sx={{ maxHeight: "70vh", overflow: "auto", scrollbarWidth: "thin" }}
+            sx={{ maxHeight: "75vh", overflow: "auto", scrollbarWidth: "thin" }}
           >
             <Table stickyHeader sx={{ minWidth: 750 }}>
               <TableHead>
@@ -262,11 +285,11 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
 
                         // Format numbers with commas and two decimal places
                         const formattedValue = isNumber
-                          ? Number(cellValue).toLocaleString("en-IN", {
+                          ? Number(cellValue).toLocaleString("en-US", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
-                            }) // Adds commas & fixes decimal places
-                          : cellValue || "--"; // Show "--" for empty values
+                            }) // Uses the Western number system (1,000,000)
+                          : cellValue || "--";
 
                         return (
                           <TableCell
@@ -302,18 +325,63 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           color:
-                            row["Cost Performance Index (CPI)"] <= 0
+                            row["Cost Performance Index (CPI)"] < 1
                               ? "red"
                               : "green",
                         }}
                       >
-                        {row["Cost Performance Index (CPI)"] <= 0
+                        {row["Cost Performance Index (CPI)"] < 1
                           ? "Behind the Schedule and Over Budget"
                           : "Ahead the Schedule and Under Budget"}
                       </TableCell>
                     </TableRow>
                   );
                 })}
+                <TableRow
+                  sx={{
+                    backgroundColor: "#0392e8",
+                    color: "white",
+                    fontWeight: "bold",
+                  }}
+                >
+                  <TableCell
+                    colSpan={columns.length - 9}
+                    sx={{ ...totalStyle, textAlign: "center" }}
+                  >
+                    Total
+                  </TableCell>
+               
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.PV.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.EXV.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.EV.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.AC.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                   3,728,113.00
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.SV.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {(totals.SPI / rowData.length).toFixed(2)}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.CV.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {(totals.CPI / rowData.length).toFixed(2)}
+                  </TableCell>
+                  <TableCell
+                    sx={{ ...totalStyle, textAlign: "right" }}
+                  ></TableCell>
+                </TableRow>
               </TableBody>
             </Table>
           </TableContainer>

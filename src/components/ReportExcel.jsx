@@ -150,7 +150,7 @@ const exportToExcel = async ({
           typeof value === "number" ||
           (typeof value === "string" && !isNaN(value))
         ) {
-          return Number(value).toLocaleString("en-IN", {
+          return Number(value).toLocaleString("en-US", {
             minimumFractionDigits: 2,
           });
         }
@@ -171,7 +171,7 @@ const exportToExcel = async ({
       // Compute "Remark" column value
       let remarkText = "";
       let remarkColor = "000000"; // Default black
-      if (row["Cost Performance Index (CPI)"] <= 0) {
+      if (row["Cost Performance Index (CPI)"] < 1) {
         remarkText = "Behind the Schedule and Over Budget";
         remarkColor = "FF0000"; // Red
       } else {

@@ -20,11 +20,13 @@ function App() {
         let myObject = JSON.parse(response?.data?.ResultData);
   
         // Update each object with new calculated fields
-        const updatedData = myObject.map(item => ({
-          ...item,
+        const updatedData = myObject.map((item,index) => ({
+          ...item, 
           "Planed Value (PV)":item.PV,
+          "Execute Value":item.PV=== 0? 0 :(100+index)*index,
           "Earned Value (EV)":item.EV,
           "Actual Cost (AC)":item.AC,
+          "Selling Price": null,  
           "Schedule Variance (SV)": item.EV - item.PV,       // Schedule Variance
           "Schedule Performance Index (SPI)": item.PV !== 0 ? item.EV / item.PV : 0, // Schedule Performance Index (avoid division by zero)
           "Cumulative of Cost Variance (CV)": item.EV - item.AC,       // Cost Variance

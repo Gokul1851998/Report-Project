@@ -7,20 +7,28 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { IconButton, Typography, Stack } from "@mui/material";
+import { Typography} from "@mui/material";
 import AutoComplete from "./AutoComplete";
 import TextBox from "./TextBox";
-import DeleteIcon from "@mui/icons-material/Delete";
 import ActionButton from "./ActionButton";
 import exportToExcel from "./ReportExcel";
 
-const profileDateFields = "Created On,Modified On,CreatedOn,ModifiedOn";
+const style = {
+  display: "flex",
+  alignItems: "center",
+  fontSize: "1.2rem",
+  color: "gray",
+  "@media (max-width: 600px)": {
+    fontSize: "1rem", // Reduce font size on smaller screens
+  },
+  fontWeight: "bold",
+};
 
 export default function ReportSummary({ rowData, formData, setFormData }) {
   const [filteredRows, setFilteredRows] = React.useState([]);
   const [columns, setColumns] = React.useState([]);
   const IdName = "Id";
-  const excludedFields = [IdName,'Month','Year','PV','AC','EV'];
+  const excludedFields = [IdName, "Month", "Year", "PV", "AC", "EV"];
   const styleIcon = {
     color: "white",
   };
@@ -35,7 +43,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
               key.charAt(0).toUpperCase() +
               key
                 .slice(1)
-          
+
                 .trim(), // Format label as readable text
             minWidth: 100, // Set default minWidth for all columns
             maxWidth: 200,
@@ -80,23 +88,6 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
     );
   };
 
-  //To convert date and time to dd/mm/yyyy format
-  const convertToLocaleDateString = (dateString) => {
-    if (!dateString) return ""; // Return an empty string for null or undefined values
-    const date = new Date(dateString);
-    if (isNaN(date)) return dateString; // If date is invalid, return the original string
-
-    // Convert to local time
-    const localDate = new Date(
-      date.getTime() - date.getTimezoneOffset() * 60000
-    );
-
-    const day = String(localDate.getDate()).padStart(2, "0");
-    const month = String(localDate.getMonth() + 1).padStart(2, "0"); // Months are zero-indexed
-    const year = localDate.getFullYear();
-
-    return `${day}-${month}-${year}`;
-  };
 
   const handleExcel = async () => {
     try {
@@ -104,7 +95,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
         reportName:
           "REF. 4222300027 - RU/129/PRJ - INSTALLATION, TESTING AND COMMISSIONING OF DISTRIBUTION SUBSTATIONS & KIOSKS AND DISCONNECTION, RECOVERY AND REPLACEMENT OF EQUIPMENTS",
         filteredRows: rowData,
-        excludedFields: ['Month','Year','PV','AC','EV'],
+        excludedFields: ["Month", "Year", "PV", "AC", "EV"],
       });
     } catch (error) {
       console.error("Excel export failed:", error);
@@ -125,6 +116,22 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
           alignItems: "center", // Align items properly
         }}
       >
+           <Box
+          sx={{
+            display: "flex",
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            paddingLeft: 1.5,
+            paddingRight: 1.5,
+            flexWrap: "wrap",
+          }}
+        >
+          <Typography underline="hover" sx={style} key="1">
+            Name of the Report
+          </Typography>
+        
+        </Box>
         {/* Left-aligned elements */}
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <AutoComplete
@@ -243,31 +250,45 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                         backgroundColor: index % 2 === 1 ? "#b3e5fc" : null,
                       }}
                     >
-                      {columns.map((column) => (
-                        <TableCell
-                          sx={{
-                            backgroundColor: null,
-                            padding: "0px",
-                            paddingLeft: "4px",
-                            paddingRight: "4px",
-                            border: `1px solid #ddd`,
-                            minWidth: "100px",
-                            maxWidth: column.maxWidth,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            textAlign:typeof(row[column.id]) === 'number'? "right" : null
-                          }}
-                          key={column.id}
-                          style={{ minWidth: column.minWidth }}
-                        >
-                        {typeof row[column.id] === "number"
-    ? (Math.floor(row[column.id]) === row[column.id] // Check if it's a whole number
-        ? row[column.id].toFixed(2) // Convert whole number to 2 decimal places
-        : row[column.id].toFixed(2)) // Ensure one decimal is formatted to two
-    : `${row[column.id]}`}
-                        </TableCell>
-                      ))}
+                      {columns.map((column) => {
+                        const cellValue = row[column.id];
+
+                        // Determine if value is a number
+                        const isNumber =
+                          typeof cellValue === "number" ||
+                          (typeof cellValue === "string" &&
+                            cellValue.trim() !== "" &&
+                            !isNaN(cellValue));
+
+                        // Format numbers with commas and two decimal places
+                        const formattedValue = isNumber
+                          ? Number(cellValue).toLocaleString("en-IN", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            }) // Adds commas & fixes decimal places
+                          : cellValue || "--"; // Show "--" for empty values
+
+                        return (
+                          <TableCell
+                            sx={{
+                              backgroundColor: null,
+                              padding: "0px 4px",
+                              border: "1px solid #ddd",
+                              minWidth: "100px",
+                              maxWidth: column.maxWidth,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              textAlign: isNumber ? "right" : "left", // Right-align numbers
+                            }}
+                            key={column.id}
+                            style={{ minWidth: column.minWidth }}
+                          >
+                            {formattedValue}
+                          </TableCell>
+                        );
+                      })}
+
                       <TableCell
                         sx={{
                           backgroundColor: null,
@@ -280,9 +301,10 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          color:row["Cost Performance Index (CPI)"] <= 0
-                            ? "red"
-                            : "green"
+                          color:
+                            row["Cost Performance Index (CPI)"] <= 0
+                              ? "red"
+                              : "green",
                         }}
                       >
                         {row["Cost Performance Index (CPI)"] <= 0

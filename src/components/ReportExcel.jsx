@@ -145,17 +145,25 @@ const exportToExcel = async ({
         createNewSheet();
       }
 
+      const formatNumberWithCommas = (value) => {
+        if (
+          typeof value === "number" ||
+          (typeof value === "string" && !isNaN(value))
+        ) {
+          return Number(value).toLocaleString("en-IN", {
+            minimumFractionDigits: 2,
+          });
+        }
+        return value;
+      };
+
       let rowData = Object.keys(row)
         .filter((header) => !excludedFields.includes(header))
         .map((header) => {
           let value = row[header] ?? "";
 
-          // Format numbers to always have two decimal places
-          if (typeof value === "number") {
-            value = Number.isInteger(value)
-              ? value.toFixed(2)
-              : value.toFixed(2);
-          }
+          // Format numbers to have commas (Indian format)
+          value = formatNumberWithCommas(value);
 
           return profileDateFields.includes(header) ? formatDate(value) : value;
         });
@@ -198,19 +206,21 @@ const exportToExcel = async ({
           };
         }
 
-        const isNumber = (value) => {
-          return (
-            typeof value === "number" ||
-            (typeof value === "string" &&
-              value.trim() !== "" &&
-              isFinite(value))
-          );
-        };
+        // const isNumber = (value) => {
+        //   return (
+        //     typeof value === "number" ||
+        //     (typeof value === "string" &&
+        //       value.trim() !== "" &&
+        //       isFinite(value))
+        //   );
+        // };
+        // console.log(fieldName);
 
         cell.alignment = {
-          horizontal: isNumber(cell.value) ? "right" : "center",
+          horizontal: ["Remark", "MonthYear"].includes(fieldName) ? "center" : "right",
           vertical: "middle",
-        }; // Center-align text
+        };
+         // Center-align text
 
         cell.font = { color: { argb: "311b92" } };
       });
@@ -218,7 +228,11 @@ const exportToExcel = async ({
       // Apply color formatting to "Remark" column
       const remarkCell = excelRow.getCell(rowData.length);
       remarkCell.font = { color: { argb: remarkColor } };
-
+      remarkCell.alignment = {
+        horizontal: "center",
+        vertical: "middle",
+        wrapText: true, // Ensure text wrapping
+      };
       currentRowCount++;
     });
     // 🔹 Auto-Fit Column Width
@@ -239,7 +253,13 @@ const exportToExcel = async ({
 
     const formatDateTimeForFilename = () => {
       const now = new Date();
-      return `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}_${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}-${String(now.getSeconds()).padStart(2, "0")}`;
+      return `${String(now.getDate()).padStart(2, "0")}-${String(
+        now.getMonth() + 1
+      ).padStart(2, "0")}-${now.getFullYear()}_${String(
+        now.getHours()
+      ).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}-${String(
+        now.getSeconds()
+      ).padStart(2, "0")}`;
     };
 
     const buffer = await workbook.xlsx.writeBuffer();

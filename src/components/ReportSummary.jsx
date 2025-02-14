@@ -43,10 +43,12 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
     paddingBottom: "3px",
     position: "relative",
   };
-  
+   console.log(rowData);
+   
   const totals = rowData?.reduce(
     (acc, row) => ({
-      EXV: acc.EXV + (row["Execute Value"] || 0),
+      EXV: acc.EXV + (row["ExecutedValue"] || 0),
+      SL: row["SellingPrice"] || 0,
       PV: acc.PV + (row["Planed Value (PV)"] || 0),
       EV: acc.EV + (row["Earned Value (EV)"] || 0),
       AC: acc.AC + (row["Actual Cost (AC)"] || 0),
@@ -55,7 +57,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
       CV: acc.CV + (row["Cumulative of Cost Variance (CV)"] || 0),
       CPI: acc.CPI + (row["Cost Performance Index (CPI)"] || 0),
     }),
-    {EXV:0, PV: 0, EV: 0, AC: 0, SV: 0, SPI: 0, CV: 0, CPI: 0 }
+    {EXV:0,SL:0, PV: 0, EV: 0, AC: 0, SV: 0, SPI: 0, CV: 0, CPI: 0 }
   );
   //To apply some filters on table rows
   const initialColumns =
@@ -152,7 +154,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
           }}
         >
           <Typography underline="hover" sx={style} key="1">
-            Name of the Report
+            Earned Value Report Management
           </Typography>
         </Box>
         {/* Left-aligned elements */}
@@ -307,7 +309,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                             key={column.id}
                             style={{ minWidth: column.minWidth }}
                           >
-                            {formattedValue}
+                            {column.id === "SellingPrice"? "" :formattedValue}
                           </TableCell>
                         );
                       })}
@@ -350,22 +352,24 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                   >
                     Total
                   </TableCell>
-               
-                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.PV.toLocaleString()}
-                  </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
                     {totals.EXV.toLocaleString()}
                   </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                  {totals.SL.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals.PV.toLocaleString()}
+                  </TableCell>
+               
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
                     {totals.EV.toLocaleString()}
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
                     {totals.AC.toLocaleString()}
                   </TableCell>
-                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                   3,728,113.00
-                  </TableCell>
+
+             
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
                     {totals.SV.toLocaleString()}
                   </TableCell>

@@ -43,7 +43,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
     paddingBottom: "3px",
     position: "relative",
   };
-   console.log(rowData);
+
    
   const totals = rowData?.reduce(
     (acc, row) => ({

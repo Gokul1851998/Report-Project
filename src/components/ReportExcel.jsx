@@ -214,7 +214,7 @@ const exportToExcel = async ({
         //       isFinite(value))
         //   );
         // };
-        // console.log(fieldName);
+    
 
         cell.alignment = {
           horizontal: ["Remark", "MonthYear"].includes(fieldName) ? "center" : "right",

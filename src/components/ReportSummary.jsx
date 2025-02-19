@@ -326,15 +326,28 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          color:
-                            row["Cost Performance Index (CPI)"] < 1
-                              ? "red"
-                              : "green",
+                        
                         }}
                       >
-                        {row["Cost Performance Index (CPI)"] < 1
-                          ? "Behind the Schedule and Over Budget"
-                          : "Ahead the Schedule and Under Budget"}
+                        {row["Schedule Performance Index (SPI)"] > 1 && row["Cost Performance Index (CPI)"] > 1
+                          ? "Ahead of Schedule & Under Budget"
+                          :row["Schedule Performance Index (SPI)"] > 1 && row["Cost Performance Index (CPI)"] === 1
+                          ? "Ahead of Schedule & On Budget"
+                          :row["Schedule Performance Index (SPI)"] > 1 && row["Cost Performance Index (CPI)"] < 1
+                          ? "Ahead of Schedule & Over Budget"
+                          :row["Schedule Performance Index (SPI)"] === 1 && row["Cost Performance Index (CPI)"] > 1
+                          ? "On Schedule & Under Budget"
+                          :row["Schedule Performance Index (SPI)"] === 1 && row["Cost Performance Index (CPI)"] === 1
+                          ? "On Schedule & On Budget"
+                          :row["Schedule Performance Index (SPI)"] === 1 && row["Cost Performance Index (CPI)"] < 1
+                          ? "On Schedule & Over Budget"
+                          :row["Schedule Performance Index (SPI)"] < 1 && row["Cost Performance Index (CPI)"] > 1
+                          ? "Behind Schedule & Under Budget"
+                          :row["Schedule Performance Index (SPI)"] < 1 && row["Cost Performance Index (CPI)"] === 1
+                          ? "Behind Schedule & On Budget"
+                          :row["Schedule Performance Index (SPI)"] < 1 && row["Cost Performance Index (CPI)"] > 1
+                          ? "Behind Schedule & Over Budget"
+                          : " "}
                       </TableCell>
                     </TableRow>
                   );

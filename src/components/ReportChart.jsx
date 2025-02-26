@@ -2,7 +2,6 @@ import * as React from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
 
 export default function ReportChart({ rowData }) {
-  console.log(rowData);
 
   if (!rowData || rowData.length === 0) {
     return (
@@ -14,9 +13,9 @@ export default function ReportChart({ rowData }) {
 
   // Extract data safely
   const xLabels = rowData.map((item) => item?.MonthYear || "N/A"); // X-axis: MonthYear
-  const pvData = rowData.map((item) => Number(item?.PV) || 0); // Planned Value
-  const evData = rowData.map((item) => Number(item?.EV) || 0); // Earned Value
-  const acData = rowData.map((item) => Number(item?.AC) || 0); // Actual Cost
+  const pvData = rowData.map((item) => Number(item["Planned Value (PV)"]) || 0); // Planned Value
+  const evData = rowData.map((item) => Number(item["Earned Value (EV)"]) || 0); // Earned Value
+  const acData = rowData.map((item) => Number(item["Actual Cost (AC)"]) || 0); // Actual Cost
 
   // Helper function to check if a series contains only zeros
   const isAllZero = (data) => data.every((val) => val === 0);

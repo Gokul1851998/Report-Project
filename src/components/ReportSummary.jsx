@@ -1,4 +1,5 @@
 import * as React from "react";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -28,7 +29,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
   const [filteredRows, setFilteredRows] = React.useState([]);
   const [columns, setColumns] = React.useState([]);
   const IdName = "Id";
-  const excludedFields = [IdName, "Month", "Year", "PV", "AC", "EV"];
+  const excludedFields = [IdName, "Month", "Year", "PV", "AC", "EV", "ExecutedValue","SellingPrice"];
 
   const totalStyle = {
     padding: "0px",
@@ -44,21 +45,30 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
     position: "relative",
   };
 
-   
-  const totals = rowData?.reduce(
-    (acc, row) => ({
-      EXV: acc.EXV + (row["ExecutedValue"] || 0),
-      SL: row["SellingPrice"] || 0,
-      PV: acc.PV + (row["Planed Value (PV)"] || 0),
-      EV: acc.EV + (row["Earned Value (EV)"] || 0),
-      AC: acc.AC + (row["Actual Cost (AC)"] || 0),
-      SV: acc.SV + (row["Schedule Variance (SV)"] || 0),
-      SPI: acc.SPI + (row["Schedule Performance Index (SPI)"] || 0),
-      CV: acc.CV + (row["Cumulative of Cost Variance (CV)"] || 0),
-      CPI: acc.CPI + (row["Cost Performance Index (CPI)"] || 0),
-    }),
-    {EXV:0,SL:0, PV: 0, EV: 0, AC: 0, SV: 0, SPI: 0, CV: 0, CPI: 0 }
-  );
+  const totals = rowData?.length > 0 
+  ? { 
+      "Executed Value": rowData[rowData.length - 1]["Executed Value"] || 0,
+      "Selling Price": rowData[rowData.length - 1]["Selling Price"] || 0,
+      "Planned Value (PV)": rowData[rowData.length - 1]["Planned Value (PV)"] || 0,
+      "Earned Value (EV)": rowData[rowData.length - 1]["Earned Value (EV)"] || 0,
+      "Actual Cost (AC)": rowData[rowData.length - 1]["Actual Cost (AC)"] || 0,
+      "Schedule Variance (SV)": rowData[rowData.length - 1]["Schedule Variance (SV)"] || 0,
+      "Schedule Performance Index (SPI)": rowData[rowData.length - 1]["Schedule Performance Index (SPI)"] || 0,
+      "Cumulative of Cost Variance (CV)": rowData[rowData.length - 1]["Cumulative of Cost Variance (CV)"] || 0,
+      "Cost Performance Index (CPI)": rowData[rowData.length - 1]["Cost Performance Index (CPI)"] || 0
+    }
+  : { 
+      "Executed Value": 0,
+      "Selling Price": 0,
+      "Planned Value (PV)": 0,
+      "Earned Value (EV)": 0,
+      "Actual Cost (AC)": 0,
+      "Schedule Variance (SV)": 0,
+      "Schedule Performance Index (SPI)": 0,
+      "Cumulative of Cost Variance (CV)": 0,
+      "Cost Performance Index (CPI)": 0
+    };
+
   //To apply some filters on table rows
   const initialColumns =
     rowData && rowData.length > 0
@@ -123,9 +133,13 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
         filteredRows: rowData,
         excludedFields: ["Month", "Year", "PV", "AC", "EV"],
       });
-    } catch (error) {
-      console.error("Excel export failed:", error);
-    }
+    } catch (error) {}
+  };
+
+  ReportSummary.propTypes = {
+    rowData: PropTypes.array.isRequired,
+    formData: PropTypes.object.isRequired,
+    setFormData: PropTypes.func.isRequired,
   };
 
   return (
@@ -246,7 +260,40 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                       paddingBottom: "3px",
                     }}
                   >
-                    Remark
+                  Ahead the Schedule
+                    <span
+                      style={{
+                        position: "absolute",
+                        height: "100%",
+                        right: 0,
+                        top: 0,
+                        width: "5px",
+                        cursor: "col-resize",
+                        backgroundColor: "rgba(0,0,0,0.1)",
+                      }}
+                      onMouseDown={(e) => handleResize(index, e)}
+                    />
+                  </TableCell>
+                  <TableCell
+                    style={{
+                      width: "20px",
+                      position: "relative",
+                      textAlign: "center",
+                    }}
+                    sx={{
+                      padding: "0px",
+                      paddingLeft: "4px",
+                      border: `1px solid #ddd`,
+                      fontWeight: "600",
+                      font: "14px",
+                      backgroundColor: "#0277bd",
+                      color: "white",
+                      paddingTop: "3px",
+                      paddingBottom: "3px",
+                    }}
+                  >
+                 	
+Behind the Schedule 
                     <span
                       style={{
                         position: "absolute",
@@ -309,7 +356,7 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                             key={column.id}
                             style={{ minWidth: column.minWidth }}
                           >
-                            {column.id === "SellingPrice"? "" :formattedValue}
+                            {column.id === "Selling Price" ? "" : formattedValue}
                           </TableCell>
                         );
                       })}
@@ -326,28 +373,64 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                        
                         }}
                       >
-                        {row["Schedule Performance Index (SPI)"] > 1 && row["Cost Performance Index (CPI)"] > 1
-                          ? "Ahead of Schedule & Under Budget"
-                          :row["Schedule Performance Index (SPI)"] > 1 && row["Cost Performance Index (CPI)"] === 1
-                          ? "Ahead of Schedule & On Budget"
-                          :row["Schedule Performance Index (SPI)"] > 1 && row["Cost Performance Index (CPI)"] < 1
-                          ? "Ahead of Schedule & Over Budget"
-                          :row["Schedule Performance Index (SPI)"] === 1 && row["Cost Performance Index (CPI)"] > 1
-                          ? "On Schedule & Under Budget"
-                          :row["Schedule Performance Index (SPI)"] === 1 && row["Cost Performance Index (CPI)"] === 1
-                          ? "On Schedule & On Budget"
-                          :row["Schedule Performance Index (SPI)"] === 1 && row["Cost Performance Index (CPI)"] < 1
-                          ? "On Schedule & Over Budget"
-                          :row["Schedule Performance Index (SPI)"] < 1 && row["Cost Performance Index (CPI)"] > 1
-                          ? "Behind Schedule & Under Budget"
-                          :row["Schedule Performance Index (SPI)"] < 1 && row["Cost Performance Index (CPI)"] === 1
-                          ? "Behind Schedule & On Budget"
-                          :row["Schedule Performance Index (SPI)"] < 1 && row["Cost Performance Index (CPI)"] > 1
-                          ? "Behind Schedule & Over Budget"
-                          : " "}
+                        {row["Schedule Performance Index (SPI)"] >= 1 &&
+                        row["Cost Performance Index (CPI)"] >= 1 ? (
+                          <Typography
+                            variant="p"
+                            component="div"
+                            sx={{ flexGrow: 1, color:"green" }}
+                          >
+                            Ahead the Schedule & Under Budget
+                          </Typography>
+                        ) : row["Schedule Performance Index (SPI)"] >= 1 &&
+                          row["Cost Performance Index (CPI)"] <= 1 ? (
+                 
+                          <Typography
+                          variant="p"
+                          component="div"
+                          sx={{ flexGrow: 1, color:"green" }}
+                        >
+                         Ahead the Schedule & Over Budget
+                        </Typography>
+                        ) :  null}
+                      </TableCell>
+
+                      <TableCell
+                        sx={{
+                          backgroundColor: null,
+                          padding: "0px",
+                          paddingLeft: "4px",
+                          paddingRight: "4px",
+                          textAlign: "center",
+                          border: `1px solid #ddd`,
+                          minWidth: "100px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {row["Schedule Performance Index (SPI)"] <= 1 &&
+                          row["Cost Performance Index (CPI)"] >= 1 ? (
+                          
+                          <Typography
+                          variant="p"
+                          component="div"
+                          sx={{ flexGrow: 1, color:"red" }}
+                        >
+                        Behind the Schedule & Under Budget
+                        </Typography>
+                        ) : row["Schedule Performance Index (SPI)"] <= 1 &&
+                          row["Cost Performance Index (CPI)"] <= 1 ? (
+                            <Typography
+                            variant="p"
+                            component="div"
+                            sx={{ flexGrow: 1, color:"red" }}
+                          >
+                          Behind the Schedule & Over Budget
+                          </Typography>
+                        ) : null}
                       </TableCell>
                     </TableRow>
                   );
@@ -366,36 +449,38 @@ export default function ReportSummary({ rowData, formData, setFormData }) {
                     Total
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.EXV.toLocaleString()}
+                    {totals["Executed Value"]?.toLocaleString()}
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                  {totals.SL.toLocaleString()}
+                    {totals["Selling Price"]?.toLocaleString()}
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.PV.toLocaleString()}
-                  </TableCell>
-               
-                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.EV.toLocaleString()}
-                  </TableCell>
-                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.AC.toLocaleString()}
+                    {totals["Planned Value (PV)"]?.toLocaleString()}
                   </TableCell>
 
-             
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.SV.toLocaleString()}
+                    {totals["Earned Value (EV)"]?.toLocaleString()}
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {(totals.SPI / rowData.length).toFixed(2)}
+                    {totals["Actual Cost (AC)"]?.toLocaleString()}
+                  </TableCell>
+
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals["Schedule Variance (SV)"]?.toLocaleString()}
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {totals.CV.toLocaleString()}
+                    {totals["Schedule Performance Index (SPI)"]?.toFixed(2)}
                   </TableCell>
                   <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
-                    {(totals.CPI / rowData.length).toFixed(2)}
+                    {totals["Cumulative of Cost Variance (CV)"]?.toLocaleString()}
+                  </TableCell>
+                  <TableCell sx={{ ...totalStyle, textAlign: "right" }}>
+                    {totals["Cost Performance Index (CPI)"]?.toFixed(2)}
                   </TableCell>
                   <TableCell
+                    sx={{ ...totalStyle, textAlign: "right" }}
+                  ></TableCell>
+                       <TableCell
                     sx={{ ...totalStyle, textAlign: "right" }}
                   ></TableCell>
                 </TableRow>

@@ -4,7 +4,6 @@ import ReportSummary from "./components/ReportSummary";
 import Header from "./components/Header";
 import { Box } from "@mui/material";
 import ReportChart from "./components/ReportChart";
-import { baseUrl } from "./config";
 const currentDate = new Date().toISOString().split("T")[0];
 
 function App() {
@@ -14,7 +13,7 @@ function App() {
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        `${baseUrl}GetErnMgmtRep?Project=${formData?.Project}&Date=${formData?.Date}`
+        `http://103.120.178.195/Sang.Ray.Web.Api/Ray/GetErnMgmtRep?Project=${formData?.Project}&Date=${formData?.Date}`
       );
   
       if (response?.status === 200) {
